@@ -12,7 +12,6 @@ class StoreManager {
     
     private(set) var availableProducts: [Product] = [Product]()
     private(set) var income: Decimal = 0
-    private var autoIncrementKey: Int = 0
     
     private let defaultNames: [String] = ["Apple", "Tangerine", "Lemon", "Mango", "Pear"]
     private let defaultEmojis: [String] = ["🍏", "🍊", "🍋", "🥭", "🍐"]
@@ -20,17 +19,15 @@ class StoreManager {
     private let defaultDescriptions: [String] = ["Sweet", "Sour", "Tasteless", "Viscous"]
     
     func buyProducts(products: Product...) {
-        for var product in products {
-            product.id = autoIncrementKey
+        for product in products {
             availableProducts.append(product)
-            autoIncrementKey += 1
         }
     }
     
     func sellProducts(products: Product...) {
         for product in products {
             if availableProducts.contains(product) {
-                income += product.price
+                income += product.price.decimalValue
                 availableProducts = availableProducts.filter { aProduct in
                     return aProduct != product
                 }

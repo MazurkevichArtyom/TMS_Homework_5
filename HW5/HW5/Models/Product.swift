@@ -6,16 +6,25 @@
 //
 
 import Foundation
+import RealmSwift
 
-struct Product : Equatable {
-    var id: Int = -1
-    var name: String
-    var emoji: String
-    var description: String
-    var price: Decimal
+class Product : Object {
+    @Persisted var id: String
+    @Persisted var name: String
+    @Persisted var emoji: String
+    @Persisted var productDescription: String
+    @Persisted var price: Decimal128
+    
+    convenience init(name: String, emoji: String, description: String, price: Decimal) {
+        self.init()
+        id = UUID().uuidString
+        self.emoji = emoji
+        self.productDescription = description
+        self.price = Decimal128(value: price)
+    }
     
     func getStringValue() -> String {
-        return "\(emoji) \(name) (\(description)) - \(price)$"
+        return "\(emoji) \(name) (\(productDescription)) - \(price)$"
     }
     
     static func ==(lhs: Product, rhs: Product) -> Bool {
