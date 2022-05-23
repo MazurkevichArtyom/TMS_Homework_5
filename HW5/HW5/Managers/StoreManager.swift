@@ -6,33 +6,57 @@
 //
 
 import Foundation
+import RealmSwift
 
 class StoreManager {
     static let shared = StoreManager()
     
     private(set) var availableProducts: [Product] = [Product]()
-    private(set) var income: Decimal = 0
-    private var autoIncrementKey: Int = 0
+    var income: Decimal {
+        get {
+            incomeModel.incomeValue.decimalValue
+        }
+    }
+    
+    private var incomeModel = Income(initialIncome: 0)
     
     private let defaultNames: [String] = ["Apple", "Tangerine", "Lemon", "Mango", "Pear"]
     private let defaultEmojis: [String] = ["🍏", "🍊", "🍋", "🥭", "🍐"]
     
     private let defaultDescriptions: [String] = ["Sweet", "Sour", "Tasteless", "Viscous"]
     
+    private init()
+    {
+        let realm = try! Realm()
+        let objects = realm.objects(Product.self)
+        availableProducts = Array(objects)
+        
+        if let incomeModel = realm.objects(Income.self).first {
+            self.incomeModel = incomeModel
+        }
+    }
+    
     func buyProducts(products: Product...) {
-        for var product in products {
-            product.id = autoIncrementKey
-            availableProducts.append(product)
-            autoIncrementKey += 1
+        for product in products {
+            let realm = try! Realm()
+            try? realm.write {
+                realm.add(product)
+                availableProducts.append(product)
+            }
         }
     }
     
     func sellProducts(products: Product...) {
         for product in products {
             if availableProducts.contains(product) {
-                income += product.price
-                availableProducts = availableProducts.filter { aProduct in
-                    return aProduct != product
+                let realm = try! Realm()
+                try? realm.write {
+                    incomeModel.addIncome(price: product.price.decimalValue)
+                    availableProducts = availableProducts.filter { aProduct in
+                        return aProduct != product
+                    }
+                    realm.add(incomeModel, update: .all)
+                    realm.delete(product)
                 }
             }
         }
